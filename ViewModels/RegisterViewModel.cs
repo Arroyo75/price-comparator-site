@@ -5,6 +5,9 @@ namespace price_comparator_site.ViewModels
     public class RegisterViewModel
     {
         [Required]
+        public string Nickname { get; set; }
+
+        [Required]
         [EmailAddress]
         public string Email { get; set; }
 

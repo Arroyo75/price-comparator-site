@@ -31,14 +31,15 @@ namespace price_comparator_site.Controllers
                 var user = new ApplicationUser
                 {
                     UserName = model.Email,
-                    Email = model.Email
+                    Email = model.Email,
+                    Nickname = model.Nickname
                 };
 
                 var result = await _userManager.CreateAsync(user, model.Password);
                 if(result.Succeeded)
                 {
                     await _signInManager.SignInAsync(user, isPersistent: false);
-                    return RedirectToAction("Index", "Home");
+                    return RedirectToAction("Index", "Games");
                 }
                 foreach (var error in result.Errors)
                 {
@@ -62,7 +63,7 @@ namespace price_comparator_site.Controllers
                 var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
                 if(result.Succeeded)
                 {
-                    return RedirectToAction("Index", "Home");
+                    return RedirectToAction("Index", "Games");
                 }
                 ModelState.AddModelError("", "Invalid login attempt.");
             }
@@ -72,7 +73,7 @@ namespace price_comparator_site.Controllers
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Index", "Games");
         }
     }
 }

@@ -112,8 +112,8 @@ namespace price_comparator_site.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var game = await _context.Games.FindAsync(id);
-            if(game != null)
+            var game = await _context.Games.Include(g => g.Prices).FirstOrDefaultAsync(m => m.Id == id);
+            if (game != null)
             {
                 _context.Games.Remove(game);
                 await _context.SaveChangesAsync();
