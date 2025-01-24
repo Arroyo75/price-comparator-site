@@ -10,6 +10,6 @@
         public string Developer { get; set; } = "";
         public string? Publisher { get; set; }
         public DateTime ReleaseDate { get; set; }
-        public virtual ICollection<Price>? Prices { get; set; }
+        public virtual IEnumerable<Price> Prices { get; set; } = new List<Price>();
     }
 }

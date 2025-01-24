@@ -12,8 +12,8 @@ using price_comparator_site.Data;
 namespace price_comparator_site.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250123164354_First Migration")]
-    partial class FirstMigration
+    [Migration("20250124131141_Initial create")]
+    partial class Initialcreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -131,9 +131,20 @@ namespace price_comparator_site.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("LogoUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Region")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("RequiresAuth")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("isActive")
                         .HasColumnType("bit");

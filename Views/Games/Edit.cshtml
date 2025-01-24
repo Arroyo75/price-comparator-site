@@ -1,8 +1,9 @@
 ﻿@model Game
 
-<h2>Add New Game</h2>
+<h2>Edit Game</h2>
 
-<form asp-action="Create" class="row g-3">
+<form asp-action="Edit" class="row g-3">
+    <input type="hidden" asp-for="Id" />
     <div class="col-md-6">
         <label asp-for="Name" class="form-label"></label>
         <input asp-for="Name" class="form-control" />

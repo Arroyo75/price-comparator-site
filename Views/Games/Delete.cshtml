@@ -1,0 +1,24 @@
+﻿@model Game
+
+<h2>Delete Game</h2>
+
+<div class="alert alert-danger">
+    Are you sure you want to delete @Model.Name?
+</div>
+
+<div class="card mb-3">
+    <img src="@Model.ImageUrl" class="card-img-top" style="height: 300px; object-fit: cover;" alt="@Model.Name">
+    <div class="card-body">
+        <h5 class="card-title">@Model.Name</h5>
+        <p class="card-text">@Model.Description</p>
+        <p>Developer: @Model.Developer</p>
+        <p>Publisher: @Model.Publisher</p>
+        <p>Release Date: @Model.ReleaseDate.ToShortDateString()</p>
+    </div>
+</div>
+
+<form asp-action="Delete">
+    <input type="hidden" asp-for="Id" />
+    <button type="submit" class="btn btn-danger">Delete</button>
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+</form>

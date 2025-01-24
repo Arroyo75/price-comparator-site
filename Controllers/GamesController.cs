@@ -15,7 +15,7 @@ namespace price_comparator_site.Controllers
         }
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Games.ToListAsync());
+            return View(await _context.Games.Include(g => g.Prices).ToListAsync());
         }
         public async Task<IActionResult> Details(int? id)
         {
@@ -26,6 +26,7 @@ namespace price_comparator_site.Controllers
 
             var game = await _context.Games
                 .Include(g => g.Prices)
+                .ThenInclude(p => p.Store)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (game == null)
@@ -42,7 +43,7 @@ namespace price_comparator_site.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Name,StoreId,Developer,ImageUrl,Description,ReleaseDate")] Game game)
+        public async Task<IActionResult> Create([Bind("Name, StoreId, Description, ImageUrl, Developer, Publisher, ReleaseDate")] Game game)
         {
             if(ModelState.IsValid)
             {
@@ -51,6 +52,75 @@ namespace price_comparator_site.Controllers
                 return RedirectToAction(nameof(Index));
             }
             return View(game);
+        }
+
+        public async Task<IActionResult> Edit(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+            var game = await _context.Games.FindAsync(id);
+            if (game == null)
+            {
+                return NotFound();
+            }
+            return View(game);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,StoreId,Description,ImageUrl,Developer,Publisher,ReleaseDate")] Game game)
+        {
+            if(id != game.Id)
+            {
+                return NotFound();
+            }
+            if(ModelState.IsValid)
+            {
+                try
+                {
+                    _context.Update(game);
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if(!GameExists(game.Id))
+                    {
+                        return NotFound();
+                    }
+                    throw;
+                }
+                return RedirectToAction(nameof(Index));
+            }
+            return View(game);
+        }
+        public async Task<IActionResult> Delete(int? id)
+        {
+            if(id == null)
+            {
+                return NotFound();
+            }
+            var game = await _context.Games.FirstOrDefaultAsync(m => m.Id == id);
+            if(game == null)
+            {
+                return NotFound();
+            }
+            return View(game);
+        }
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var game = await _context.Games.FindAsync(id);
+            if(game != null)
+            {
+                await _context.SaveChangesAsync();
+            }
+            return RedirectToAction(nameof(Index));
+        }
+        private bool GameExists(int id)
+        {
+            return _context.Games.Any(e => e.Id == id);
         }
     }
 }

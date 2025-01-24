@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace price_comparator_site.Migrations
 {
     /// <inheritdoc />
-    public partial class FirstMigration : Migration
+    public partial class Initialcreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -39,7 +39,10 @@ namespace price_comparator_site.Migrations
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     BaseUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     isActive = table.Column<bool>(type: "bit", nullable: false),
-                    ApiKey = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    ApiKey = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    LogoUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Region = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    RequiresAuth = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {

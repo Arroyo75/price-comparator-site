@@ -1,0 +1,66 @@
+﻿@model Game
+
+<div class="container py-4">
+    <div class="row">
+        <div class="col-md-4">
+            <img src="@Model.ImageUrl" class="img-fluid rounded shadow" alt="@Model.Name">
+        </div>
+        <div class="col-md-8">
+            <h1 class="mb-3">@Model.Name</h1>
+            <div class="d-flex gap-3 mb-4">
+                <span class="badge bg-primary">@Model.Developer</span>
+
+                @if(!string.IsNullOrEmpty(Model.Publisher)) {
+                    <span class="badge bg-secondary">@Model.Publisher</span>
+                }
+
+                <span class="badge bg-info">Released: @Model.ReleaseDate.ToString("d")</span>
+            </div>
+            <p class="lead mb-4">@Model.Description</p>
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">Available Prices</h3>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Store</th>
+                                    <th>Price</th>
+                                    <th>Original</th>
+                                    <th>Discount</th>
+                                    <th>Last Updated</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach(var price in Model.Prices.OrderBy(p => p.CurrentPrice)) {
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <img src="@price.Store?.LogoUrl" alt="@price.Store?.Name" style="height: 24px;" />
+                                                @price.Store?.Name
+                                            </div>
+                                        </td>
+                                        <td class="fw-bold">@price.CurrentPrice.ToString("C")</td>
+                                        <td class="text-muted text-decoration-line-through">@price.OriginalPrice?.ToString("C")</td>
+                                        <td>
+                                            @if(price.DiscountPercentage>0) {
+                                                <span class="badge bg-danger">-@price.DiscountPercentage%</span>
+                                            }
+                                        </td>
+                                        <td>@price.LastUpdated.ToString("g")</td>
+                                        <td>
+                                            <a href="@price.StoreUrl" class="btn btn-primary btn-sm" taget="_blank">Buy</a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

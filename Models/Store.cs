@@ -7,5 +7,8 @@
         public string BaseUrl { get; set; } = "";
         public bool isActive { get; set; }
         public string ApiKey { get; set; } = "";
+        public string LogoUrl { get; set; } = "";
+        public string Region { get; set; } = "";
+        public bool RequiresAuth { get; set; }
     }
 }
