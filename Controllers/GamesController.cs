@@ -100,6 +100,7 @@ namespace price_comparator_site.Controllers
             {
                 return NotFound();
             }
+            Console.WriteLine("2");
             var game = await _context.Games.FirstOrDefaultAsync(m => m.Id == id);
             if(game == null)
             {
@@ -114,6 +115,7 @@ namespace price_comparator_site.Controllers
             var game = await _context.Games.FindAsync(id);
             if(game != null)
             {
+                _context.Games.Remove(game);
                 await _context.SaveChangesAsync();
             }
             return RedirectToAction(nameof(Index));
