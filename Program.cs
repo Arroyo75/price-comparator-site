@@ -2,6 +2,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using price_comparator_site.Data;
 using price_comparator_site.Models;
+using price_comparator_site.Services.Steam;
+using price_comparator_site.Services.Interfaces;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +17,20 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options => {
     })
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
+builder.Services.AddHttpClient<ISteamService, SteamService>();
+builder.Services.AddRateLimiter(options =>
+{
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: "Steam",
+            factory: partition => new FixedWindowRateLimiterOptions
+            {
+                AutoReplenishment = true,
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1)
+            }));
+});
+
 
 var app = builder.Build();
 
@@ -33,6 +50,7 @@ app.UseRouting();
 
 app.UseAuthorization();
 
+app.UseRateLimiter();
 
 app.MapControllerRoute(
     name: "default",
