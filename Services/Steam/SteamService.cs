@@ -2,6 +2,7 @@
 using price_comparator_site.Services.Steam.Models;
 using price_comparator_site.Models;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace price_comparator_site.Services.Steam
 {
@@ -65,7 +66,9 @@ namespace price_comparator_site.Services.Steam
                 {
                     PropertyNameCaseInsensitive = true,
                     AllowTrailingCommas = true,
-                    ReadCommentHandling = JsonCommentHandling.Skip
+                    ReadCommentHandling = JsonCommentHandling.Skip,
+                    NumberHandling = JsonNumberHandling.AllowReadingFromString,
+                    MaxDepth = 64
                 };
 
                 var response = JsonSerializer.Deserialize<Dictionary<string, SteamAppDetails>>(responseString, options);
@@ -76,7 +79,9 @@ namespace price_comparator_site.Services.Steam
                     return null;
                 }
 
-                var description = details.Data.Short_description ?? details.Data.Detailed_description ?? "No description available";
+                var description = StripHtmlAndClean(details.Data.Short_description ??
+                                           details.Data.Detailed_description ??
+                                           "No description available");
                 if (description.Length > 500)
                 {
                     description = description.Substring(0, 497) + "...";
@@ -84,7 +89,7 @@ namespace price_comparator_site.Services.Steam
 
                 return new Game
                 {
-                    Name = details.Data.Name,
+                    Name = details.Data.Name ?? "Unknown",
                     StoreId = appId,
                     Description = description,
                     ImageUrl = details.Data.Header_image ??
@@ -168,6 +173,17 @@ namespace price_comparator_site.Services.Steam
                 _logger.LogError(ex, "Error fetching Steam game price: {Message}", ex.Message);
                 return null;
             }
+        }
+        private string StripHtmlAndClean(string input)
+        {
+            if (string.IsNullOrEmpty(input)) return "";
+
+            // Remove HTML tags
+            var withoutTags = System.Text.RegularExpressions.Regex.Replace(input, "<.*?>", " ");
+            // Decode HTML entities
+            var decoded = System.Web.HttpUtility.HtmlDecode(withoutTags);
+            // Clean up extra whitespace
+            return System.Text.RegularExpressions.Regex.Replace(decoded, @"\s+", " ").Trim();
         }
     }
 }
