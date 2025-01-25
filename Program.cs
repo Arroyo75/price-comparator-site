@@ -17,7 +17,10 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options => {
     })
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
-builder.Services.AddHttpClient<ISteamService, SteamService>();
+builder.Services.AddHttpClient<IStoreService, SteamService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
 builder.Services.AddRateLimiter(options =>
 {
     options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>

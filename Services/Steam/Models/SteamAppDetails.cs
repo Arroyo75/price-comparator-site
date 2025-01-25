@@ -3,6 +3,6 @@
     public class SteamAppDetails
     {
         public bool Success { get; set; }
-        public SteamAppData Data { get; set; }
+        public SteamAppData? Data { get; set; }
     }
 }

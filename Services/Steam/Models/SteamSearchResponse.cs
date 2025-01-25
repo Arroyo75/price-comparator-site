@@ -2,6 +2,6 @@
 {
     public class SteamSearchResponse
     {
-        public List<SteamSearchItem> Items { get; set; }
+        public List<SteamSearchItem>? Items { get; set; }
     }
 }

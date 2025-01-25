@@ -2,10 +2,10 @@
 
 namespace price_comparator_site.Services.Interfaces
 {
-    public interface ISteamService
+    public interface IStoreService
     {
         Task<IEnumerable<Game>> SearchGamesAsync(string searchTerm);
-        Task<Game> GetGameDetailsAsync(string appId);
-        Task<Price> GetGamePriceAsync(string appId);
+        Task<Game?> GetGameDetailsAsync(string appId);
+        Task<Price?> GetGamePriceAsync(string appId);
     }
 }

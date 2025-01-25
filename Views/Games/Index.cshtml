@@ -63,39 +63,3 @@
 		}
 	</div>
 </div>
-
-@*<table class="table">
-	<thead>
-		<tr>
-			<th>Name</th>
-			<th>Developer</th>
-			<th>Image</th>
-			<th>ReleaseDate</th>
-			<th>Lowest Price</th>
-			<th>Actions</th>
-		</tr>
-	</thead>
-	<tbody>
-		@foreach(var item in Model) {
-			<tr>
-				<td>@item.Name</td>
-				<td>@item.Developer</td>
-				<td><img src="@item.ImageUrl" alt="@item.Name" /></td>
-				<td>@item.ReleaseDate.ToShortDateString()</td>
-				<td>
-					@{
-						var lowestPrice = item.Prices.Any() ?
-						item.Prices.Min(p => p.CurrentPrice).ToString("C") :
-						"N/A";
-					}
-					@lowestPrice
-				</td>
-				<td>
-					<a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Edit</a> |
-					<a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Details</a>
-					<a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Delete</a>
-				</td>
-			</tr>
-		}
-	</tbody>
-</table>*@

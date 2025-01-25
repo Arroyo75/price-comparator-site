@@ -3,7 +3,7 @@
     public class SteamSearchItem
     {
         public int Id { get; set; }
-        public string Name { get; set; }
-        public string Tiny_Image { get; set; }
+        public string? Name { get; set; }
+        public string? Tiny_Image { get; set; }
     }
 }
