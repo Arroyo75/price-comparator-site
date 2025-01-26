@@ -1,20 +1,23 @@
-﻿@model IEnumerable<Game>
+﻿@using price_comparator_site.ViewModels;
+
+@model IEnumerable<GameSearchResult>
 
 <div class="container py-4">
     <h2>Search Results</h2>
     <div class="row row-cols-1 row-cols-md-3 g-4">
-        @foreach (var game in Model)
+        @foreach (var result in Model)
         {
             <div class="col">
                 <div class="card h-100">
-                    <img src="@game.ImageUrl" class="card-img-top"
+                    <img src="@result.Game.ImageUrl" class="card-img-top"
                          style="height: 200px; object-fit: contain; background-color: #1b2838;"
-                         alt="@game.Name" />
+                         alt="@result.Game.Name" />
                     <div class="card-body">
-                        <h5 class="card-title">@game.Name</h5>
-                        <p class="card-text">@game.Description</p>
+                        <h5 class="card-title">@result.Game.Name</h5>
+                        <p class="card-text">@result.Game.Description</p>
                         <form asp-action="AddGameToDatabase" method="post">
-                            <input type="hidden" name="storeId" value="@game.StoreId">
+                            <input type="hidden" name="storeName" value="@result.StoreName">
+                            <input type="hidden" name="storeId" value="@result.Game.StoreId">
                             <button type="submit" class="btn btn-primary">Add to Database</button>
                         </form>
                     </div>

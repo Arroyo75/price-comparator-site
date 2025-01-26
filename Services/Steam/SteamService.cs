@@ -107,11 +107,11 @@ namespace price_comparator_site.Services.Steam
                 return null;
             }
         }
-        public async Task<Price?> GetGamePriceAsync(string appId)
+        public async Task<Price?> GetGamePriceAsync(string storeId)
         {
             try
             {
-                var url = $"https://store.steampowered.com/api/appdetails?appids={appId}&cc=PL&filters=price_overview";
+                var url = $"https://store.steampowered.com/api/appdetails?appids={storeId}&cc=PL&filters=price_overview";
                 var responseString = await _httpClient.GetStringAsync(url);
 
                 _logger.LogInformation("Raw Steam price response: {Response}", responseString);
@@ -123,13 +123,14 @@ namespace price_comparator_site.Services.Steam
 
                 var response = JsonSerializer.Deserialize<Dictionary<string, SteamAppDetails>>(responseString, options);
 
-                if (!response.TryGetValue(appId, out var details) || !details.Success)
+                if (!response.TryGetValue(storeId, out var details) || !details.Success)
                 {
                     return new Price
                     {
                         isAvailable = false,
                         LastUpdated = DateTime.UtcNow,
-                        StoreUrl = $"https://store.steampowered.com/app/{appId}"
+                        StoreUrl = $"https://store.steampowered.com/app/{storeId}",
+                        CurrencyCode = "PLN"
                     };
                 }
 
@@ -143,19 +144,11 @@ namespace price_comparator_site.Services.Steam
                         CurrencyCode = "PLN",
                         LastUpdated = DateTime.UtcNow,
                         isAvailable = !details.Data.Is_free,
-                        StoreUrl = $"https://store.steampowered.com/app/{appId}"
+                        StoreUrl = $"https://store.steampowered.com/app/{storeId}"
                     };
                 }
 
                 var priceOverview = details.Data.Price_overview;
-
-                _logger.LogInformation(
-                    "Processing price for game {AppId}: Initial={Initial}, Final={Final}, Discount={Discount}",
-                    appId,
-                    priceOverview.Initial,
-                    priceOverview.Final,
-                    priceOverview.Discount_percent
-                );
 
                 return new Price
                 {
@@ -165,7 +158,7 @@ namespace price_comparator_site.Services.Steam
                     CurrencyCode = priceOverview.Currency ?? "PLN",
                     LastUpdated = DateTime.UtcNow,
                     isAvailable = true,
-                    StoreUrl = $"https://store.steampowered.com/app/{appId}"
+                    StoreUrl = $"https://store.steampowered.com/app/{storeId}"
                 };
             }
             catch (Exception ex)
@@ -174,6 +167,7 @@ namespace price_comparator_site.Services.Steam
                 return null;
             }
         }
+
         private string StripHtmlAndClean(string input)
         {
             if (string.IsNullOrEmpty(input)) return "";

@@ -5,6 +5,7 @@ using price_comparator_site.Models;
 using price_comparator_site.Services.Steam;
 using price_comparator_site.Services.Interfaces;
 using System.Threading.RateLimiting;
+using price_comparator_site.Services.GOG;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,10 +18,19 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options => {
     })
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
-builder.Services.AddHttpClient<IStoreService, SteamService>(client =>
+
+builder.Services.AddHttpClient<SteamService>(client =>
 {
     client.Timeout = TimeSpan.FromSeconds(30);
 });
+builder.Services.AddHttpClient<GogService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
+
+builder.Services.AddScoped<IStoreService, SteamService>();
+builder.Services.AddScoped<IStoreService, GogService>();
+
 builder.Services.AddRateLimiter(options =>
 {
     options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>

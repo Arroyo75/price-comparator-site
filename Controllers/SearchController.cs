@@ -1,24 +1,28 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using price_comparator_site.Data;
 using price_comparator_site.Models;
 using price_comparator_site.Services.Interfaces;
+using price_comparator_site.Utils.GameMatching;
+using price_comparator_site.ViewModels;
 
 namespace price_comparator_site.Controllers
 {
     public class SearchController : Controller
     {
-        private readonly IStoreService _steamService;
+        private readonly IEnumerable<IStoreService> _storeServices;
         private readonly ApplicationDbContext _context;
         private readonly ILogger<SearchController> _logger;
-        private readonly IConfiguration _configuration;
 
-        public SearchController(IStoreService steamService, ApplicationDbContext context, ILogger<SearchController> logger, IConfiguration configuration)
+        public SearchController(
+            IEnumerable<IStoreService> storeServices,
+            ApplicationDbContext context,
+            ILogger<SearchController> logger)
         {
-            _steamService = steamService;
+            _storeServices = storeServices;
             _context = context;
             _logger = logger;
-            _configuration = configuration;
         }
 
         public IActionResult Index()
@@ -31,8 +35,21 @@ namespace price_comparator_site.Controllers
         {
             try
             {
-                var steamGames = await _steamService.SearchGamesAsync(searchTerm);
-                return View("SearchResults", steamGames);
+                var searchTasks = _storeServices.Select(async service =>
+                {
+                    var games = await service.SearchGamesAsync(searchTerm);
+                    return games.Select(game => new GameSearchResult
+                    {
+                        Game = game,
+                        StoreName = service.StoreName
+                    });
+                });
+
+                var results = await Task.WhenAll(searchTasks);
+                var allGames = results.SelectMany(x => x).ToList();
+
+                _logger.LogInformation("Found {Count} games across all stores", allGames.Count);
+                return View("SearchResults", allGames);
             }
             catch (Exception ex)
             {
@@ -43,64 +60,122 @@ namespace price_comparator_site.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddGameToDatabase(string storeId)
+        public async Task<IActionResult> AddGameToDatabase(string storeId, string storeName)
         {
             try
             {
-                var steamStore = await EnsureSteamStoreExists();
+                // First, get the service for the store where the user found the game
+                var primaryStoreService = _storeServices.FirstOrDefault(s =>
+                    s.StoreName.Equals(storeName, StringComparison.OrdinalIgnoreCase));
 
-                var existingGame = await _context.Games
-                    .Include(g => g.Prices)
-                    .FirstOrDefaultAsync(g => g.StoreId == storeId);
-
-                if (existingGame != null)
+                if (primaryStoreService == null)
                 {
-                    if (!existingGame.Prices.Any())
-                    {
-                        var newPrice = await _steamService.GetGamePriceAsync(storeId);
-                        if (newPrice != null)
-                        {
-                            newPrice.GameId = existingGame.Id;
-                            newPrice.StoreId = steamStore.Id;
-                            _context.Prices.Add(newPrice);
-                            await _context.SaveChangesAsync();
-                        }
-                    }
-
-                    return RedirectToAction("Details", "Games", new { id = existingGame.Id });
-                }
-
-                var gameDetailsTask = _steamService.GetGameDetailsAsync(storeId);
-                var gamePriceTask = _steamService.GetGamePriceAsync(storeId);
-
-                await Task.WhenAll(gameDetailsTask, gamePriceTask);
-
-                var gameDetails = await gameDetailsTask;
-                var price = await gamePriceTask;
-
-                if (gameDetails == null)
-                {
-                    TempData["Error"] = "Could not fetch game details.";
+                    TempData["Error"] = "Store service not found.";
                     return RedirectToAction("Index");
                 }
 
                 using var transaction = await _context.Database.BeginTransactionAsync();
                 try
                 {
-                    _context.Games.Add(gameDetails);
-                    await _context.SaveChangesAsync();
-
-                    if (price != null)
+                    // Get the initial game details from the primary store
+                    var gameDetails = await primaryStoreService.GetGameDetailsAsync(storeId);
+                    if (gameDetails == null)
                     {
-                        price.GameId = gameDetails.Id;
-                        price.StoreId = steamStore.Id;
-                        _context.Prices.Add(price);
+                        TempData["Error"] = "Could not fetch game details.";
+                        return RedirectToAction("Index");
+                    }
+
+                    // Find or create the game in our database
+                    var existingGames = await _context.Games
+                        .Include(g => g.Prices)
+                        .Select(g => new { g.Id, g.Name, Game = g })
+                        .ToListAsync();
+
+                    var existingGame = existingGames
+                        .FirstOrDefault(g => GameNameMatcher.AreGamesMatching(g.Name, gameDetails.Name))
+                        ?.Game;
+
+                    Game game = existingGame ?? gameDetails;
+                    if (existingGame == null)
+                    {
+                        _context.Games.Add(game);
+                        await _context.SaveChangesAsync();
+                    }
+                    else
+                    {
+                        existingGame.Description = gameDetails.Description;
+                        existingGame.ImageUrl = gameDetails.ImageUrl;
+                        existingGame.Developer = gameDetails.Developer;
+                        existingGame.Publisher = gameDetails.Publisher;
+                        _context.Update(existingGame);
                         await _context.SaveChangesAsync();
                     }
 
+                    // Now, let's handle prices from all stores
+                    foreach (var storeService in _storeServices)
+                    {
+                        try
+                        {
+                            // Get or create the store record
+                            var store = await GetOrCreateStore(storeService.StoreName);
+
+                            string? priceStoreId = null;
+
+                            if (storeService.StoreName == storeName)
+                            {
+                                // For the primary store, use the storeId we already have
+                                priceStoreId = storeId;
+                            }
+                            else
+                            {
+                                // For other stores, we need to search for the game first
+                                var searchResults = await storeService.SearchGamesAsync(game.Name);
+                                var matchingGame = FindBestMatch(searchResults, game.Name);
+
+                                if (matchingGame != null)
+                                {
+                                    priceStoreId = matchingGame.StoreId;
+                                }
+                            }
+
+                            if (priceStoreId != null)
+                            {
+                                var price = await storeService.GetGamePriceAsync(priceStoreId);
+                                if (price != null)
+                                {
+                                    var existingPrice = game.Prices
+                                        .FirstOrDefault(p => p.StoreId == store.Id);
+
+                                    if (existingPrice != null)
+                                    {
+                                        existingPrice.CurrentPrice = price.CurrentPrice;
+                                        existingPrice.OriginalPrice = price.OriginalPrice;
+                                        existingPrice.DiscountPercentage = price.DiscountPercentage;
+                                        existingPrice.LastUpdated = DateTime.UtcNow;
+                                        existingPrice.StoreUrl = price.StoreUrl;
+                                        _context.Update(existingPrice);
+                                    }
+                                    else
+                                    {
+                                        price.GameId = game.Id;
+                                        price.StoreId = store.Id;
+                                        _context.Prices.Add(price);
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Error fetching price from {StoreName}",
+                                storeService.StoreName);
+                        }
+                    }
+
+                    await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
-                    TempData["Success"] = "Game added successfully.";
-                    return RedirectToAction("Details", "Games", new { id = gameDetails.Id });
+
+                    TempData["Success"] = "Game and prices updated successfully.";
+                    return RedirectToAction("Details", "Games", new { id = game.Id });
                 }
                 catch (Exception)
                 {
@@ -110,34 +185,41 @@ namespace price_comparator_site.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error adding game with storeId: {StoreId}", storeId);
+                _logger.LogError(ex, "Error adding game to database");
                 TempData["Error"] = "Error occurred while adding game.";
                 return RedirectToAction("Index");
             }
         }
 
-        private async Task<Store> EnsureSteamStoreExists()
+        private Game? FindBestMatch(IEnumerable<Game> searchResults, string targetName)
         {
-            var steamStore = await _context.Stores
-                .FirstOrDefaultAsync(s => s.Name == "Steam");
+            return searchResults.FirstOrDefault(game => GameNameMatcher.AreGamesMatching(game.Name, targetName));
+        }
 
-            if (steamStore == null)
+        private async Task<Store> GetOrCreateStore(string storeName)
+        {
+            var store = await _context.Stores
+                .FirstOrDefaultAsync(s => s.Name == storeName);
+
+            if (store == null)
             {
-                steamStore = new Store
+                store = new Store
                 {
-                    Name = "Steam",
-                    BaseUrl = "https://store.steampowered.com",
+                    Name = storeName,
+                    BaseUrl = storeName == "Steam"
+                        ? "https://store.steampowered.com"
+                        : "https://www.gog.com",
                     isActive = true,
-                    LogoUrl = "/logos/steamlogo.png",
+                    LogoUrl = $"/images/{storeName.ToLower()}-logo.png",
                     Region = "PL",
-                    RequiresAuth = false,
-                    ApiKey = _configuration["SteamApi:Key"] ?? ""
+                    RequiresAuth = false
                 };
-                _context.Stores.Add(steamStore);
+
+                _context.Stores.Add(store);
                 await _context.SaveChangesAsync();
             }
 
-            return steamStore;
+            return store;
         }
     }
 }
