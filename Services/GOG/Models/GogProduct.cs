@@ -50,23 +50,43 @@ namespace price_comparator_site.Services.GOG.Models
         [JsonPropertyName("purchase_link")]
         public string PurchaseLink { get; set; } = "";
         public string Slug { get; set; } = "";
+
         [JsonPropertyName("content_system_compatibility")]
         public GogSystemCompatibility SystemCompatibility { get; set; } = new();
         public Dictionary<string, string> Languages { get; set; } = new();
+
         [JsonPropertyName("in_development")]
         public GogDevelopmentInfo InDevelopment { get; set; } = new();
-        [JsonPropertyName("is_secret")]
-        public bool IsSecret { get; set; }
-        [JsonPropertyName("is_installable")]
-        public bool IsInstallable { get; set; }
-        [JsonPropertyName("game_type")]
-        public string GameType { get; set; } = "";
+
         [JsonPropertyName("is_pre_order")]
         public bool IsPreOrder { get; set; }
+
         [JsonPropertyName("release_date")]
         public string ReleaseDate { get; set; } = "";
+
         public GogImages Images { get; set; } = new();
-        public List<object> Dlcs { get; set; } = new();
+
+        // Updated DLCs structure
+        public GogDlcs Dlcs { get; set; } = new();
+    }
+
+    public class GogDlcs
+    {
+        public List<GogDlcProduct> Products { get; set; } = new();
+
+        [JsonPropertyName("all_products_url")]
+        public string AllProductsUrl { get; set; } = "";
+
+        [JsonPropertyName("expanded_all_products_url")]
+        public string ExpandedAllProductsUrl { get; set; } = "";
+    }
+
+    public class GogDlcProduct
+    {
+        public int Id { get; set; }
+        public string Link { get; set; } = "";
+        [JsonPropertyName("expanded_link")]
+        public string ExpandedLink { get; set; } = "";
     }
 
     public class GogSystemCompatibility
