@@ -181,7 +181,6 @@ namespace price_comparator_site.Services.GOG
 
                 var response = JsonSerializer.Deserialize<GogPriceResponse>(responseString, options);
 
-                // Check if we have any price information
                 if (response?.Embedded?.Prices == null || !response.Embedded.Prices.Any())
                 {
                     return new Price
@@ -227,25 +226,6 @@ namespace price_comparator_site.Services.GOG
                 return null;
             }
         }
-        private DateTime GetReleaseDateSafely(long releaseTimestamp)
-        {
-            try
-            {
-                // Check if the timestamp is within reasonable bounds
-                if (releaseTimestamp <= 0 || releaseTimestamp > DateTimeOffset.Now.ToUnixTimeSeconds())
-                {
-                    return DateTime.Now;
-                }
-
-                return DateTimeOffset.FromUnixTimeSeconds(releaseTimestamp).DateTime;
-            }
-            catch
-            {
-                // If anything goes wrong with the conversion, return current date
-                return DateTime.Now;
-            }
-        }
-
 
         private bool TryParseGogPrice(string priceString, out decimal price)
         {
@@ -274,33 +254,6 @@ namespace price_comparator_site.Services.GOG
         {
             if (string.IsNullOrEmpty(imageUrl)) return "";
             return imageUrl.StartsWith("//") ? $"https:{imageUrl}" : imageUrl;
-        }
-
-        private string GetCleanDescription(string title)
-        {
-            // Remove any HTML tags and clean up the text
-            if (string.IsNullOrEmpty(title)) return "";
-
-            return System.Web.HttpUtility.HtmlDecode(title)
-                .Replace("\r\n", " ")
-                .Replace("\n", " ")
-                .Trim();
-        }
-
-        private DateTime ParseReleaseDate(long? timestamp)
-        {
-            try
-            {
-                if (!timestamp.HasValue)
-                    return DateTime.Now;
-
-                return DateTimeOffset.FromUnixTimeSeconds(timestamp.Value).DateTime;
-            }
-            catch
-            {
-                // If anything goes wrong with the conversion, return current date
-                return DateTime.Now;
-            }
         }
     }
 }
