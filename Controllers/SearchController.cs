@@ -140,7 +140,7 @@ namespace price_comparator_site.Controllers
 
                             if (priceStoreId != null)
                             {
-                                var price = await storeService.GetGamePriceAsync(priceStoreId);
+                                var price = await storeService.GetGamePriceAsync(priceStoreId, true);
                                 if (price != null)
                                 {
                                     var existingPrice = game.Prices

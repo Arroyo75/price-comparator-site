@@ -146,7 +146,7 @@ namespace price_comparator_site.Services.GOG
             }
         }
 
-        public async Task<Price?> GetGamePriceAsync(string storeId)
+        public async Task<Price?> GetGamePriceAsync(string storeId, bool? isNewGame)
         {
             try
             {
@@ -156,28 +156,17 @@ namespace price_comparator_site.Services.GOG
                     return null;
                 }
 
-                var detailsUrl = $"https://api.gog.com/products/{gogId}";
-                var detailsResponse = await _httpClient.GetStringAsync(detailsUrl);
+                var url = $"https://api.gog.com/products/{gogId}/prices?countryCode=PL";
+                var responseString = await _httpClient.GetStringAsync(url);
+
+                _logger.LogInformation("GOG Price response received for ID: {StoreId}", storeId);
+                _logger.LogInformation("Response content: {Response}", responseString);
 
                 var options = new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true,
                     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
                 };
-
-                var details = JsonSerializer.Deserialize<GogApiProduct>(detailsResponse, options);
-
-                if (details == null)
-                {
-                    _logger.LogWarning("Could not get game details for store URL: {StoreId}", storeId);
-                    return null;
-                }
-
-                var url = $"https://api.gog.com/products/{gogId}/prices?countryCode=PL";
-                var responseString = await _httpClient.GetStringAsync(url);
-
-                _logger.LogInformation("GOG Price response received for ID: {StoreId}", storeId);
-                _logger.LogInformation("Response content: {Response}", responseString);
 
                 var response = JsonSerializer.Deserialize<GogPriceResponse>(responseString, options);
 
@@ -187,7 +176,6 @@ namespace price_comparator_site.Services.GOG
                     {
                         isAvailable = false,
                         LastUpdated = DateTime.UtcNow,
-                        StoreUrl = $"https://www.gog.com/game/{details.Slug}",
                         CurrencyCode = "PLN"  // Set default currency even when unavailable
                     };
                 }
@@ -209,16 +197,38 @@ namespace price_comparator_site.Services.GOG
                     discountPercentage = (int)Math.Round((1 - (finalPrice / basePrice)) * 100);
                 }
 
-                return new Price
+                var price = new Price
                 {
                     CurrentPrice = finalPrice,
                     OriginalPrice = basePrice,
                     DiscountPercentage = discountPercentage,
                     CurrencyCode = "PLN",  // Always use PLN for consistency
                     LastUpdated = DateTime.UtcNow,
-                    isAvailable = true,
-                    StoreUrl = $"https://www.gog.com/game/{details.Slug}"
+                    isAvailable = true
                 };
+
+                if(isNewGame == true)
+                {
+                    var detailsUrl = $"https://api.gog.com/products/{gogId}";
+                    var detailsResponse = await _httpClient.GetStringAsync(detailsUrl);
+
+                    var details = JsonSerializer.Deserialize<GogApiProduct>(detailsResponse, options);
+
+                    if (details != null)
+                    {
+                        price.StoreUrl = $"https://www.gog.com/game/{details.Slug}";
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Could not get game details for store URL: {StoreId}", storeId);
+                        price.StoreUrl = $"https://www.gog.com/game/{storeId}";
+                    }
+                } else
+                {
+                    price.StoreUrl = $"https://www.gog.com/game/{storeId}";
+                }
+
+                return price;
             }
             catch (Exception ex)
             {

@@ -64,7 +64,7 @@ namespace price_comparator_site.Controllers
                     return Json(new { success = false, message = "Game not found" });
                 }
 
-                var newPrice = await _steamService.GetGamePriceAsync(game.StoreId);
+                var newPrice = await _steamService.GetGamePriceAsync(game.StoreId, false);
                 if (newPrice != null)
                 {
                     // Update existing price or add new one
@@ -120,7 +120,7 @@ namespace price_comparator_site.Controllers
                     {
                         await Task.Delay(1000);
 
-                        var newPrice = await _steamService.GetGamePriceAsync(game.StoreId);
+                        var newPrice = await _steamService.GetGamePriceAsync(game.StoreId, false);
                         if (newPrice != null)
                         {
                             var existingPrice = await _context.Prices

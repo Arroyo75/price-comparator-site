@@ -7,6 +7,6 @@ namespace price_comparator_site.Services.Interfaces
         string StoreName { get; }
         Task<IEnumerable<Game>> SearchGamesAsync(string searchTerm);
         Task<Game?> GetGameDetailsAsync(string appId);
-        Task<Price?> GetGamePriceAsync(string appId);
+        Task<Price?> GetGamePriceAsync(string appId, bool? isNewGame);
     }
 }

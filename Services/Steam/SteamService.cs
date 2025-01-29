@@ -107,7 +107,7 @@ namespace price_comparator_site.Services.Steam
                 return null;
             }
         }
-        public async Task<Price?> GetGamePriceAsync(string storeId)
+        public async Task<Price?> GetGamePriceAsync(string storeId, bool? isNewGame)
         {
             try
             {
