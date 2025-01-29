@@ -1,0 +1,39 @@
+﻿@model IEnumerable<price_comparator_site.Models.GamePriceStatistics>
+
+<div class="container py-4">
+    <h2>Game Price Statistics</h2>
+
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Game</th>
+                    <th>Store</th>
+                    <th>Price Updates</th>
+                    <th>Average Price</th>
+                    <th>Lowest Price</th>
+                    <th>Highest Price</th>
+                    <th>Avg. Discount</th>
+                    <th>Max Discount</th>
+                    <th>Times on Sale</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                @foreach(var stat in Model) {
+                    <tr>
+                        <td>@stat.GameName</td>
+                        <td>@stat.StoreName</td>
+                        <td>@stat.PriceUpdatesCount</td>
+                        <td>@stat.AveragePrice.ToString("C2")</td>
+                        <td>@stat.LowestPrice.ToString("C2")</td>
+                        <td>@stat.HighestPrice.ToString("C2")</td>
+                        <td>@(stat.AverageDiscount.HasValue ? $"{@stat.AverageDiscount}%" : "-")</td>
+                        <td>@(stat.MaxDiscount > 0 ? $"{@stat.MaxDiscount}%" : "-")</td>
+                        <td>@stat.TimesOnSale</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

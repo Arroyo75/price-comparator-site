@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using price_comparator_site.Data;
 
@@ -11,9 +12,11 @@ using price_comparator_site.Data;
 namespace price_comparator_site.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250129213641_Procedure Model")]
+    partial class ProcedureModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -264,42 +267,6 @@ namespace price_comparator_site.Migrations
                         .HasFilter("[StoreId] IS NOT NULL");
 
                     b.ToTable("Games");
-                });
-
-            modelBuilder.Entity("price_comparator_site.Models.GamePriceStatistics", b =>
-                {
-                    b.Property<decimal?>("AverageDiscount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("AveragePrice")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("GameName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("HighestPrice")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("LowestPrice")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("MaxDiscount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("PriceUpdatesCount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("StoreName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("TimesOnSale")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.ToTable((string)null);
-
-                    b.ToView(null, (string)null);
                 });
 
             modelBuilder.Entity("price_comparator_site.Models.Price", b =>
