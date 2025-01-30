@@ -67,19 +67,10 @@ namespace price_comparator_site.Services.GOG.Models
         public GogImages Images { get; set; } = new();
 
         // Updated DLCs structure
-        public GogDlcs Dlcs { get; set; } = new();
+
     }
 
-    public class GogDlcs
-    {
-        public List<GogDlcProduct> Products { get; set; } = new();
 
-        [JsonPropertyName("all_products_url")]
-        public string AllProductsUrl { get; set; } = "";
-
-        [JsonPropertyName("expanded_all_products_url")]
-        public string ExpandedAllProductsUrl { get; set; } = "";
-    }
 
     public class GogDlcProduct
     {

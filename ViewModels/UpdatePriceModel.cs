@@ -4,6 +4,7 @@
     {
         public int GameId { get; set; }
         public bool Success { get; set; }
-        public decimal NewPrice { get; set; }
+        public decimal? NewPrice { get; set; }
+        public string StoreName { get; set; } = "";
     }
 }
