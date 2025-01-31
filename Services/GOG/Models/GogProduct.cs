@@ -66,8 +66,6 @@ namespace price_comparator_site.Services.GOG.Models
 
         public GogImages Images { get; set; } = new();
 
-        // Updated DLCs structure
-
     }
 
 
@@ -109,15 +107,12 @@ namespace price_comparator_site.Services.GOG.Models
         [JsonPropertyName("menuNotificationAv2")]
         public string MenuNotificationAv2 { get; set; } = "";
     }
-
-    // Keep this for the search endpoint
     public class GogProductResponse
     {
         public List<GogProduct> Products { get; set; } = new();
         public int TotalProducts { get; set; }
     }
 
-    // Keep existing GogProduct for search results
     public class GogProduct
     {
         public int Id { get; set; }

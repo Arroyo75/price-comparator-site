@@ -9,7 +9,7 @@
         <div>
             <h1>Price Updates</h1>
             <p class="text-muted">
-                Showing @Model.Count() games with Steam prices
+                Showing @Model.Count() games with store prices
             </p>
         </div>
         <div class="mb-3">
@@ -80,22 +80,18 @@
 @section Scripts {
     <script>
         async function updatePrice(gameId) {
-            // Find the button and disable it during update
             const button = document.querySelector(`[data-game-id="${gameId}"]`);
             const originalText = button.innerHTML;
 
             try {
-                // Disable button and show loading state
                 button.disabled = true;
                 button.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Updating...';
 
-                // Get the anti-forgery token
                 const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
                 if (!tokenElement) {
                     throw new Error('Anti-forgery token not found');
                 }
 
-                // Make the AJAX call to update the price
                 const response = await fetch(`/PriceUpdate/UpdatePrice/${gameId}`, {
                     method: 'POST',
                     headers: {
@@ -111,7 +107,6 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    // Update the price display
                     const priceElement = document.getElementById(`price-${gameId}`);
                     if (priceElement) {
                         priceElement.textContent = new Intl.NumberFormat('pl-PL', {
@@ -120,7 +115,6 @@
                         }).format(data.newPrice);
                     }
 
-                    // Update the "last updated" text
                     const updatedElement = document.getElementById(`updated-${gameId}`);
                     if (updatedElement) {
                         updatedElement.textContent = 'Just now';
@@ -134,7 +128,6 @@
                 console.error('Error:', error);
                 showAlert('danger', 'Error updating price');
             } finally {
-                // Always re-enable the button and restore original text
                 button.disabled = false;
                 button.innerHTML = originalText;
             }
@@ -153,7 +146,7 @@
 
             alertsContainer.appendChild(alert);
 
-            setTimeout(() => {  //alert lasts 5 seconds
+            setTimeout(() => {
                 if (alert && alert.parentNode) {
                     alert.remove();
                 }

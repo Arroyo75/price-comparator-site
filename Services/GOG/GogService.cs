@@ -25,7 +25,6 @@ namespace price_comparator_site.Services.GOG
         {
             try
             {
-                // Construct the search URL with proper encoding
                 var url = $"https://www.gog.com/games/ajax/filtered?mediaType=game&search={Uri.EscapeDataString(searchTerm)}&language=en-US&country=PL";
                 var responseString = await _httpClient.GetStringAsync(url);
 
@@ -98,7 +97,6 @@ namespace price_comparator_site.Services.GOG
                     return null;
                 }
 
-                // Get game details from the products endpoint
                 var productUrl = $"https://api.gog.com/products/{gogId}";
                 var productResponse = await _httpClient.GetStringAsync(productUrl);
                 _logger.LogInformation("GOG product response received for ID: {StoreId}", storeId);
@@ -119,14 +117,12 @@ namespace price_comparator_site.Services.GOG
                     return null;
                 }
 
-                // Try to parse the release date
                 DateTime releaseDate;
                 if (!DateTime.TryParse(product.ReleaseDate, out releaseDate))
                 {
                     releaseDate = DateTime.Now;
                 }
 
-                // Create our Game model from the API response
                 return new Game
                 {
                     Name = product.Title.Trim(),
@@ -176,7 +172,7 @@ namespace price_comparator_site.Services.GOG
                     {
                         isAvailable = false,
                         LastUpdated = DateTime.UtcNow,
-                        CurrencyCode = "PLN"  // Set default currency even when unavailable
+                        CurrencyCode = "PLN"
                     };
                 }
 
@@ -190,7 +186,6 @@ namespace price_comparator_site.Services.GOG
                     return null;
                 }
 
-                // Calculate discount percentage
                 var discountPercentage = 0;
                 if (basePrice > 0)
                 {
@@ -202,7 +197,7 @@ namespace price_comparator_site.Services.GOG
                     CurrentPrice = finalPrice,
                     OriginalPrice = basePrice,
                     DiscountPercentage = discountPercentage,
-                    CurrencyCode = "PLN",  // Always use PLN for consistency
+                    CurrencyCode = "PLN",
                     LastUpdated = DateTime.UtcNow,
                     isAvailable = true
                 };
@@ -250,7 +245,6 @@ namespace price_comparator_site.Services.GOG
             if (parts.Length == 0)
                 return false;
 
-            // Parse the number and convert from smallest currency unit (groszy) to PLN
             if (int.TryParse(parts[0], out int smallestUnit))
             {
                 price = smallestUnit / 100m;  // Convert to decimal zloty

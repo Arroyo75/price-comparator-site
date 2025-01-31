@@ -64,7 +64,7 @@ namespace price_comparator_site.Controllers
         {
             try
             {
-                // First, get the service for the store where the user found the game
+                //First, get the service for the store where the user found the game
                 var primaryStoreService = _storeServices.FirstOrDefault(s =>
                     s.StoreName.Equals(storeName, StringComparison.OrdinalIgnoreCase));
 
@@ -77,7 +77,7 @@ namespace price_comparator_site.Controllers
                 using var transaction = await _context.Database.BeginTransactionAsync();
                 try
                 {
-                    // Get the initial game details from the primary store
+                    //get the initial game details from the primary store
                     var gameDetails = await primaryStoreService.GetGameDetailsAsync(storeId);
                     if (gameDetails == null)
                     {
@@ -85,7 +85,6 @@ namespace price_comparator_site.Controllers
                         return RedirectToAction("Index");
                     }
 
-                    // Find or create the game in our database
                     var existingGames = await _context.Games
                         .Include(g => g.Prices)
                         .Select(g => new { g.Id, g.Name, Game = g })
@@ -101,7 +100,7 @@ namespace price_comparator_site.Controllers
 
                         if (storeName == "Steam")
                         {
-                            game.StoreId = storeId;  // This is already happening
+                            game.StoreId = storeId;
                             game.GogId = null;
                         }
                         else if (storeName == "GOG")
@@ -123,24 +122,22 @@ namespace price_comparator_site.Controllers
                         await _context.SaveChangesAsync();
                     }
 
-                    // Now, let's handle prices from all stores
+                    //Handling prices from other stores
                     foreach (var storeService in _storeServices)
                     {
                         try
                         {
-                            // Get or create the store record
                             var store = await GetOrCreateStore(storeService.StoreName);
 
                             string? priceStoreId = null;
 
                             if (storeService.StoreName == storeName)
                             {
-                                // For the primary store, use the storeId we already have
+                                //For the primary store, use the storeId we already have
                                 priceStoreId = storeId;
                             }
                             else
                             {
-                                // For other stores, we need to search for the game first
                                 var searchResults = await storeService.SearchGamesAsync(game.Name);
                                 var matchingGame = FindBestMatch(searchResults, game.Name);
 
