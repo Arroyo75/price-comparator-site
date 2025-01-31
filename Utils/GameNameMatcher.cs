@@ -39,6 +39,12 @@ namespace price_comparator_site.Utils.GameMatching
 
         public static bool AreGamesMatching(string name1, string name2)
         {
+
+            if (string.Equals(name1.Trim(), name2.Trim(), StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
             // Normalize both game names for comparison
             var normalized1 = NormalizeGameName(name1);
             var normalized2 = NormalizeGameName(name2);

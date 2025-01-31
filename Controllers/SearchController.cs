@@ -98,6 +98,18 @@ namespace price_comparator_site.Controllers
                     Game game = existingGame ?? gameDetails;
                     if (existingGame == null)
                     {
+
+                        if (storeName == "Steam")
+                        {
+                            game.StoreId = storeId;  // This is already happening
+                            game.GogId = null;
+                        }
+                        else if (storeName == "GOG")
+                        {
+                            game.StoreId = null;
+                            game.GogId = storeId;
+                        }
+
                         _context.Games.Add(game);
                         await _context.SaveChangesAsync();
                     }
@@ -135,6 +147,18 @@ namespace price_comparator_site.Controllers
                                 if (matchingGame != null)
                                 {
                                     priceStoreId = matchingGame.StoreId;
+
+                                    if (storeService.StoreName == "Steam")
+                                    {
+                                        game.StoreId = matchingGame.StoreId;
+                                    }
+                                    else if (storeService.StoreName == "GOG")
+                                    {
+                                        game.GogId = matchingGame.StoreId;
+                                    }
+
+                                    _context.Update(game);
+                                    await _context.SaveChangesAsync();
                                 }
                             }
 
@@ -193,6 +217,13 @@ namespace price_comparator_site.Controllers
 
         private Game? FindBestMatch(IEnumerable<Game> searchResults, string targetName)
         {
+
+            var exactMatch = searchResults.FirstOrDefault(game =>
+            string.Equals(game.Name.Trim(), targetName.Trim(), StringComparison.OrdinalIgnoreCase));
+
+            if (exactMatch != null)
+                return exactMatch;
+
             return searchResults.FirstOrDefault(game => GameNameMatcher.AreGamesMatching(game.Name, targetName));
         }
 
@@ -207,7 +238,7 @@ namespace price_comparator_site.Controllers
                 {
                     Name = storeName,
                     BaseUrl = storeName == "Steam"
-                        ? "https://store.steampowered.com"
+                        ? "https://store.steampowered.com"  
                         : "https://www.gog.com",
                     isActive = true,
                     LogoUrl = $"/images/{storeName.ToLower()}-logo.png",

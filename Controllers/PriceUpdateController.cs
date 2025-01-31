@@ -155,7 +155,26 @@ public class PriceUpdateController : Controller
 
                     try
                     {
-                        var newPrice = await storeService.GetGamePriceAsync(game.StoreId, false);
+
+                        string? storeSpecificId = null;
+
+                        if (price.Store.Name == "Steam")
+                        {
+                            storeSpecificId = game.StoreId;
+                        }
+                        else if (price.Store.Name == "GOG")
+                        {
+                            storeSpecificId = game.GogId;
+                        }
+
+                        if (string.IsNullOrEmpty(storeSpecificId))
+                        {
+                            _logger.LogWarning("No store ID found for game {GameId} in store {StoreName}",
+                                game.Id, price.Store.Name);
+                            continue;
+                        }
+
+                        var newPrice = await storeService.GetGamePriceAsync(storeSpecificId, false);
                         if (newPrice != null)
                         {
                             price.CurrentPrice = newPrice.CurrentPrice;
