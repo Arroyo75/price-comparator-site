@@ -1,1 +1,1 @@
-Goal of a site is to build a price comparator that will access APIs / web scrape sites in order to compare prices. Personal goal is to learn .net mvc. As Gog API service is public, Steam API requires key. Database used - SQL Server, authentication done witj ASP .NET Core Identity.
+Goal of a site is to build a price comparator that will access APIs / web scrape sites in order to compare prices. Personal goal is to learn .net mvc. As Gog API service is public, Steam API requires key. Database used - SQL Server, authentication done with ASP .NET Core Identity.
